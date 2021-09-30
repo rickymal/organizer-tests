@@ -20,7 +20,7 @@
   },
   "scripts": {
     "start": "ts-node index.ts",
-    "start-watch": "nodemon index.ts",
+    "dev": "nodemon index.ts",
     "build": "tsc",
     "build-all": "tsc --project ./"
   },
