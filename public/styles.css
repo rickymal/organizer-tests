@@ -1,0 +1,14 @@
+.flex-test {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-parser {
+    display: flex;
+    flex-direction: row;
+}
+
+
+.expand-width {
+    width: auto;
+}
