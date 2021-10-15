@@ -72,26 +72,29 @@
             <li class="breadcrumb-item active" aria-current="page">Data</li>
         </ol>
         </nav>
-
-        <form action="/api/insert-task" method="post">
-            <label for="fname">First name:</label><br>
-            <input type="text" id="fname" name="fname" value="John"><br>
-            <label for="lname">Last name:</label><br>
-            <input type="text" id="lname" name="lname" value="Doe"><br><br>
-            <input type="submit" value="Submit">
-        </form>
-
-
         <div class="container">
             <form action="/api/insert-task" id="idrs" method="post">
                 <div class="mb-3">
-                    <label for="qq" class="form-label">Email address</label>
-                    <input type="text" class="form-control" id="qq" aria-describedby="emailHelp" name = "qq">
+                    <label for="project_name" class="form-label">Nome do novo projeto</label>
+                    <input type="text" class="form-control" id="qq" aria-describedby="emailHelp" name = "project_name"  value="Projeto de teste">
                     <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="vv" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="vv" name="vv">
+                    <label for="description" class="form-label">Descrição do projeto</label>
+                    <textarea class="form-control" id="description" name="description" style="min-height: 200px;">Descrição de exemplo, este projeto é para testes no banco de dados</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="task_duration" class="form-label">Tempo de duração do projeto</label>
+                    <input type="date" class="form-control" id="qq" aria-describedby="emailHelp" name = "task_duration" value="10-18-2021">
+                    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                </div>
+                <div class="mb-3">
+                    <select class="form-select" aria-label="Default select example" name="project_type">
+                        <option selected value="0">Modalidade do projeto</option>
+                        <option value="1">Discreto</option>
+                        <option value="2">Por demanda</option>
+                        <option value="3">Por metas</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Submeter</button>
             </form>
