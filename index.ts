@@ -26,12 +26,10 @@ interface Purpose_attributes {
     id : number,
     project_name : string,
     task_duration : Date,
-    project_type : number
+    project_type : number,
+    description: string,
 }
-
 interface Purpose_Creation_attributes extends Optional<Purpose_attributes,"id"> {}
-
-
 class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> implements Purpose_attributes {
     public id!: number;
     public project_name!: string;
@@ -47,7 +45,7 @@ class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> impl
     public hasProject!: HasManyHasAssociationMixin<User, number>;
     public countProjects!: HasManyCountAssociationsMixin;
     public createProject!: HasManyCreateAssociationMixin<User>;
-    public setUser!: HasOneSetAssociationMixin<User, number>
+    public setUser!: HasOneSetAssociationMixin<User, number>;
 
 
 
@@ -57,6 +55,11 @@ class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> impl
 
 
 Purpose.init({
+    id: {
+        type: Dt.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
     project_name : {type : Dt.STRING, allowNull : false},
     description : {type : Dt.TEXT, allowNull : false},
     task_duration : {type : Dt.DATE, allowNull : false},
@@ -86,7 +89,6 @@ sequelize.sync({force : true})
 
 app.post('/api/insert-task',async (req,res) => {
     const data_body = req.body
-    console.log(req.body)
     const mock_user = User.build({
         name : "Henrique",
         email : "riquemauler@gmail.com",
@@ -96,10 +98,11 @@ app.post('/api/insert-task',async (req,res) => {
     const new_purpose = Purpose.build(data_body)
     new_purpose.setUser(mock_user)
     new_purpose.save().then(e => {
-        res.send({
-            content : data_body,
-            response : new_purpose.toJSON()
-        })
-    })
+        // res.send({
+        //     content : data_body,
+        //     response : new_purpose.toJSON()
+        // })
 
+       res.redirect('/homepage.html')
+    })
 })
