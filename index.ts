@@ -1,6 +1,5 @@
 import express from 'express'
 import path from 'path'
-import mongoose from 'mongoose';
 const app = express()
 const PORT = 8001;
 const all_path = path.join(__dirname,'public')
@@ -9,22 +8,72 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(all_path))
 
+import {Sequelize, Model, DataTypes as Dt, Optional, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasOneSetAssociationMixin} from 'sequelize'
 
-// Criar a instância do mongoose
-async function configMongo(){
-    await mongoose.connect('mongodb://localhost:27017/test');
 
-    const purpose_planning_schema = new mongoose.Schema({
-        project_name: String,
-        description : String,
-        task_duration : Date,
-        project_type : Number,
-      });
-      // continuar a partir da documentação
-      // https://mongoosejs.com/docs/
 
-      const task = mongoose.model("Purpose_Planning",)
+// criando o banco de dados
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: 'database.sqlite'
+  });
+
+
+class User extends Model {}
+
+
+interface Purpose_attributes {
+    id : number,
+    project_name : string,
+    task_duration : Date,
+    project_type : number
 }
+
+interface Purpose_Creation_attributes extends Optional<Purpose_attributes,"id"> {}
+
+
+class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> implements Purpose_attributes {
+    public id!: number;
+    public project_name!: string;
+    public description!: string;
+    public task_duration!: Date;
+    public project_type!: number;
+
+    public readonly createdAt!: Date;
+    public readonly updatedAt!: Date;
+
+    public getProjects!: HasManyGetAssociationsMixin<User>;
+    public addProject!: HasManyAddAssociationMixin<User, number>;
+    public hasProject!: HasManyHasAssociationMixin<User, number>;
+    public countProjects!: HasManyCountAssociationsMixin;
+    public createProject!: HasManyCreateAssociationMixin<User>;
+    public setUser!: HasOneSetAssociationMixin<User, number>
+
+
+
+}
+
+
+
+
+Purpose.init({
+    project_name : {type : Dt.STRING, allowNull : false},
+    description : {type : Dt.TEXT, allowNull : false},
+    task_duration : {type : Dt.DATE, allowNull : false},
+    project_type : {type : Dt.INTEGER, allowNull : false},
+},{sequelize, modelName : "Purpose", timestamps : true})
+
+
+User.init({
+    name: {type: Dt.STRING, allowNull : false},
+    email : {type : Dt.STRING, allowNull : false},
+    password : {type : Dt.STRING, allowNull : false},
+},{sequelize, modelName : "User", timestamps : true})
+
+
+// 1:N
+User.hasMany(Purpose)
+Purpose.belongsTo(User)
 
 
 
@@ -33,10 +82,24 @@ app.listen(PORT, () => {
     console.log("Servidor rodando")
 })
 
-app.post('/api/insert-task',(req,res) => {
-    const data_query = req.query
+sequelize.sync({force : true})
+
+app.post('/api/insert-task',async (req,res) => {
+    const data_body = req.body
     console.log(req.body)
-    res.send({
-        content : req.body,
+    const mock_user = User.build({
+        name : "Henrique",
+        email : "riquemauler@gmail.com",
+        password : "123"
     })
+
+    const new_purpose = Purpose.build(data_body)
+    new_purpose.setUser(mock_user)
+    new_purpose.save().then(e => {
+        res.send({
+            content : data_body,
+            response : new_purpose.toJSON()
+        })
+    })
+
 })
