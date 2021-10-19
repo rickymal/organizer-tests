@@ -2,11 +2,18 @@ import express from 'express'
 import path from 'path'
 const app = express()
 const PORT = 8001;
-const all_path = path.join(__dirname,'public')
-console.log(all_path)
+
+const pages_path = path.join(__dirname,'public')
+const view_path = path.join(__dirname,'views')
+
+console.log(pages_path)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static(all_path))
+app.use(express.static(pages_path))
+app.set('views',view_path)
+app.set('view engine','jsx')
+app.engine('jsx', require('express-react-views').createEngine());
+
 
 import {Sequelize, Model, DataTypes as Dt, Optional, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasOneSetAssociationMixin} from 'sequelize'
 
@@ -87,6 +94,15 @@ app.listen(PORT, () => {
 
 sequelize.sync({force : true})
 
+
+app.get('/component/list',async (req,res) => {
+    res.render('list', {
+        title: "Batatinha frita",
+        random: "1234e",
+        description: "Uma breve descrição aqui"
+    })
+})
+
 app.post('/api/insert-task',async (req,res) => {
     const data_body = req.body
     const mock_user = User.build({
@@ -103,6 +119,6 @@ app.post('/api/insert-task',async (req,res) => {
         //     response : new_purpose.toJSON()
         // })
 
-       res.redirect('/homepage.html')
+       res.redirect('/')
     })
 })
