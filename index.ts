@@ -1,7 +1,7 @@
 import express from 'express'
 import path from 'path'
 const app = express()
-const PORT = 8001;
+const PORT = 8000;
 
 const pages_path = path.join(__dirname,'public')
 const view_path = path.join(__dirname,'views')
@@ -15,7 +15,7 @@ app.set('view engine','jsx')
 app.engine('jsx', require('express-react-views').createEngine());
 
 
-import {Sequelize, Model, DataTypes as Dt, Optional, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasOneSetAssociationMixin} from 'sequelize'
+import {Sequelize, Model, DataTypes as Dt, Op ,Optional, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasOneSetAssociationMixin} from 'sequelize'
 
 
 
@@ -54,11 +54,7 @@ class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> impl
     public createProject!: HasManyCreateAssociationMixin<User>;
     public setUser!: HasOneSetAssociationMixin<User, number>;
 
-
-
 }
-
-
 
 
 Purpose.init({
@@ -85,8 +81,6 @@ User.init({
 User.hasMany(Purpose)
 Purpose.belongsTo(User)
 
-
-
 app.get('/',(req,res) => res.send("Express with typescript working"))
 app.listen(PORT, () => {
     console.log("Servidor rodando")
@@ -96,9 +90,18 @@ sequelize.sync({force : true})
 
 
 app.get('/component/list',async (req,res) => {
+
+    const user_id = 0 //mock
+    Purpose.findAll({where : {
+        userId : {
+            [Op.eq]: user_id
+        }
+    }})
+    
+
     res.render('list', {
         title: "Batatinha frita",
-        random: "1234e",
+        id: "collapser-list",
         description: "Uma breve descrição aqui"
     })
 })
