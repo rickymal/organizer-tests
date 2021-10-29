@@ -50,17 +50,27 @@ class User {
 
 
 @Entity()
+class Supervior {
+    @PrimaryGeneratedColumn()
+    id!: number;
+}
+
+
+
+@Entity()
+class Supervised {
+    @PrimaryGeneratedColumn()
+    id!: number
+}
+
+
+
+@Entity()
 class Auditory {
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @Column()
-    supervisor!: number
-
-    @Column()
-    supervised!: number
-
 }
+
 
 
 @Entity()
@@ -68,14 +78,13 @@ class Goal {
     @PrimaryGeneratedColumn()
     id!: number
 
-    title!: string
+    project_name!: string
 
-    description!: string 
+    project_description!: string 
 
-    duration!: string
+    project_duration!: string
 
-    type!: string
-
+    project_type!: string
 
 }
 
@@ -84,59 +93,100 @@ function authenticate(req: any,res: any,next: any) {
 }
 
 
-
-
 createConnection({
     type: "sqlite",
     database: "datateste.sqlite",
     entities: [
-        User
+        User,
+        Auditory,
+        Goal
     ],
     synchronize: true,
     logging: false
-}).then(connection => {
+}).then(async connection => {
     // here you can start to work with your entities
-    console.log("Deu tudo certo")
-
-
-    app.get('/',(req,res) => res.send("Express with typescript working"))
     
+
+    // apagando todo o conteudo (o id continua na contagem normal)
+    const entt = connection.entityMetadatas;
+    for (let e of entt) {
+        let repository = connection.getRepository(e.name)
+        await repository.delete({})
+    }
+
+    // Criando um supervisor e um supervisionado para testes
+    let supervisor = new User()
+    let supervisioned = new User()
+
+    supervisor.name = "Diogo"
+    supervisor.password = "Batata doce"
+    supervisor.email = "sdahdsuodhausi"
+
+    supervisioned.name = "Henrique"
+    supervisioned.password = "ahjksdh"
+    supervisioned.email = "dashduisahd"
+
+    let sup = await connection.manager.save(supervisor)
+    let supe = await connection.manager.save(supervisioned)
+     
+    console.log("supervisor",JSON.stringify(sup))
+    console.log("supervisied",JSON.stringify(supe))
+
+    let new_auditory = new Auditory()
+
+    new_auditory.supervisor = sup.id
+    new_auditory.supervised = supe.id
+    let auditory_save = await connection.manager.save(new_auditory)
+    app.get('/',(req,res) => res.send("Express with typescript working"))
+    app.post('/api/insert_task',async function (req,res) {
+
+        let goal = new Goal()
+        
+        goal.project_description = req.body.project_description
+        goal.project_duration = req.body.project_duration
+        goal.project_name = req.body.project_name
+        goal.project_type = req.body.project_type
+
+
+        let goal_serialized = await connection.manager.save(goal)
+        console.log(JSON.stringify(goal_serialized))
+
+
+        res.json(req.body)
+    })
+
+    app.post('/', function(req,res) {
+        console.log("TESTE")
+    })
+
     app.get("/login",(req,res) => {
         const data_body = req.body
-    
+        console.log("Entrou aqui não?!")
         // criptografar a senha
         const secret = data_body.password || "123"
         let hash = createHmac('sha256',secret).update("Batatinha frita 1 2 3").digest('hex')
-    
         let email = data_body.email
-
         let new_user = new User()
 
+        new_user.email = "teste@teste.com"
+        new_user.name= "Antônio"
+        new_user.password = secret
+
+        connection.manager.save(new_user).then(new_user => {
+            console.log("Novo usuário foi adicionado com sucesso",new_user.id)
+            res.send(JSON.stringify(new_user))
+        })
     })
 }).catch(error => console.log(error));
-
-
-
-
 
 app.listen(PORT, () => {
     console.log("Servidor rodando")
 })
 
-
-
 app.get('/component/list',async (req,res) => {
-
-  
-
     res.render('list', {
         title: "Batatinha frita",
         id: "collapser-list",
         description: "Uma breve descrição aqui"
     })
-})
-
-app.post('/api/insert-task',async (req,res) => {
-    const data_body = req.body
-
 })

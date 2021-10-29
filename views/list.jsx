@@ -2,17 +2,17 @@ import React from 'react'
 
 export default function List(props) {
     return (
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+        <div className="accordion-item">
+            <h2 className="accordion-header" id="panelsStayOpen-headingTwo">
+                <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target={`#lagar-${props.id}`} aria-expanded="false"
                     aria-controls="panelsStayOpen-collapseTwo">
                     Accordion Item #2
                 </button>
             </h2>
-            <div id={`lagar-${props.id}`} class="accordion-collapse collapse"
+            <div id={`lagar-${props.id}`} className="accordion-collapse collapse"
                 aria-labelledby="panelsStayOpen-headingTwo">
-                <div class="accordion-body">
+                <div className="accordion-body">
                     <strong>This is the second item's accordion body.</strong> It is hidden by default, until the
                     collapse plugin adds the appropriate classes that we use to style each element. These classes
                     control the overall appearance, as well as the showing and hiding via CSS transitions. You can
