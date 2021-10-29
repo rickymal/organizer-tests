@@ -1,5 +1,9 @@
+import "reflect-metadata"
 import express from 'express'
 import path from 'path'
+import { Entity, PrimaryGeneratedColumn, Column, createConnection } from 'typeorm';
+import { createHmac } from "crypto";
+
 const app = express()
 const PORT = 8000;
 
@@ -15,89 +19,115 @@ app.set('view engine','jsx')
 app.engine('jsx', require('express-react-views').createEngine());
 
 
-import {Sequelize, Model, DataTypes as Dt, Op ,Optional, HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasOneSetAssociationMixin} from 'sequelize'
 
+@Entity()
+class Authenticator {
+    @PrimaryGeneratedColumn()
+    id!: number
 
+    @Column()
+    user_connected!: string
 
-// criando o banco de dados
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: 'database.sqlite'
-  });
-
-
-class User extends Model {}
-
-
-interface Purpose_attributes {
-    id : number,
-    project_name : string,
-    task_duration : Date,
-    project_type : number,
-    description: string,
+    @Column()
+    token!: string
 }
-interface Purpose_Creation_attributes extends Optional<Purpose_attributes,"id"> {}
-class Purpose extends Model<Purpose_attributes,Purpose_Creation_attributes> implements Purpose_attributes {
-    public id!: number;
-    public project_name!: string;
-    public description!: string;
-    public task_duration!: Date;
-    public project_type!: number;
 
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
+// criando entidade
+@Entity()
+class User {
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-    public getProjects!: HasManyGetAssociationsMixin<User>;
-    public addProject!: HasManyAddAssociationMixin<User, number>;
-    public hasProject!: HasManyHasAssociationMixin<User, number>;
-    public countProjects!: HasManyCountAssociationsMixin;
-    public createProject!: HasManyCreateAssociationMixin<User>;
-    public setUser!: HasOneSetAssociationMixin<User, number>;
+    @Column()
+    name!: string
 
+    @Column()
+    email!: string   
+
+    @Column()
+    password!: string
 }
 
 
-Purpose.init({
-    id: {
-        type: Dt.INTEGER.UNSIGNED,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-    project_name : {type : Dt.STRING, allowNull : false},
-    description : {type : Dt.TEXT, allowNull : false},
-    task_duration : {type : Dt.DATE, allowNull : false},
-    project_type : {type : Dt.INTEGER, allowNull : false},
-},{sequelize, modelName : "Purpose", timestamps : true})
+@Entity()
+class Auditory {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    supervisor!: number
+
+    @Column()
+    supervised!: number
+
+}
 
 
-User.init({
-    name: {type: Dt.STRING, allowNull : false},
-    email : {type : Dt.STRING, allowNull : false},
-    password : {type : Dt.STRING, allowNull : false},
-},{sequelize, modelName : "User", timestamps : true})
+@Entity()
+class Goal {
+    @PrimaryGeneratedColumn()
+    id!: number
+
+    title!: string
+
+    description!: string 
+
+    duration!: string
+
+    type!: string
 
 
-// 1:N
-User.hasMany(Purpose)
-Purpose.belongsTo(User)
+}
 
-app.get('/',(req,res) => res.send("Express with typescript working"))
+
+function authenticate(req: any,res: any,next: any) {
+}
+
+
+
+
+createConnection({
+    type: "sqlite",
+    database: "datateste.sqlite",
+    entities: [
+        User
+    ],
+    synchronize: true,
+    logging: false
+}).then(connection => {
+    // here you can start to work with your entities
+    console.log("Deu tudo certo")
+
+
+    app.get('/',(req,res) => res.send("Express with typescript working"))
+    
+    app.get("/login",(req,res) => {
+        const data_body = req.body
+    
+        // criptografar a senha
+        const secret = data_body.password || "123"
+        let hash = createHmac('sha256',secret).update("Batatinha frita 1 2 3").digest('hex')
+    
+        let email = data_body.email
+
+        let new_user = new User()
+
+    })
+}).catch(error => console.log(error));
+
+
+
+
+
 app.listen(PORT, () => {
     console.log("Servidor rodando")
 })
 
-sequelize.sync({force : true})
 
 
 app.get('/component/list',async (req,res) => {
 
-    const user_id = 0 //mock
-    Purpose.findAll({where : {
-        userId : {
-            [Op.eq]: user_id
-        }
-    }})
-    
+  
 
     res.render('list', {
         title: "Batatinha frita",
@@ -108,20 +138,5 @@ app.get('/component/list',async (req,res) => {
 
 app.post('/api/insert-task',async (req,res) => {
     const data_body = req.body
-    const mock_user = User.build({
-        name : "Henrique",
-        email : "riquemauler@gmail.com",
-        password : "123"
-    })
 
-    const new_purpose = Purpose.build(data_body)
-    new_purpose.setUser(mock_user)
-    new_purpose.save().then(e => {
-        // res.send({
-        //     content : data_body,
-        //     response : new_purpose.toJSON()
-        // })
-
-       res.redirect('/')
-    })
 })
