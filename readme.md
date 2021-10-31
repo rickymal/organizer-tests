@@ -5,3 +5,5 @@
       - O supervisor poderá criar tarefas a deriva e o supervisionado obtem
       - O supervisionado também poderá criar tarefas e automaticamente será elencado a este
 - Uma lista de tarefas a serem executadas
+- Criar um sistema de tags baseados no que é escrito, observando o que tem de comum e deduzindo com um sistema LSTM inteligente as 
+
