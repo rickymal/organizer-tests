@@ -20,17 +20,6 @@ app.engine('jsx', require('express-react-views').createEngine());
 
 
 
-@Entity()
-class Authenticator {
-    @PrimaryGeneratedColumn()
-    id: number
-
-    @Column()
-    user_connected: string
-
-    @Column()
-    token: string
-}
 
 // criando entidade
 @Entity()
@@ -47,34 +36,16 @@ class User {
     @Column()
     password: string
 
+    @OneToMany(() => Auditory, s => s.supervisor)
+    supervisors : Auditory[]
+
+    @OneToMany(() => Auditory, s => s.supervised)
+    supervisers : Auditory[]
 
 
 }
 
 
-@Entity()
-class Supervisor {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @OneToOne(() => User)
-    @JoinColumn()
-    user: User;
-
-
-}
-
-
-
-@Entity()
-class Supervised {
-    @PrimaryGeneratedColumn()
-    id: number
-
-    @OneToOne(() => User)
-    user: User;
-
-}
 
 
 
@@ -82,30 +53,72 @@ class Supervised {
 class Auditory {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @ManyToOne(() => User)
+    supervisor: User
+
+    @ManyToOne(() => User)
+    supervised: User
+
+    @Column()
+    description : string
 }
 
 
+
+@Entity()
+class Purpose {
+    @PrimaryGeneratedColumn()
+    id: number
+
+    @Column()
+    project_name: string
+
+    @Column()
+    project_description: string 
+
+    @Column()
+    project_duration: string
+
+    @Column()
+    project_type: string
+
+    @OneToMany(() => Task, tsk => tsk.purpose)
+    tasks : Task[]
+
+}
+
+
+@Entity()
+class Task {
+    @PrimaryGeneratedColumn()
+    id: number
+
+    @ManyToOne(() => Purpose)
+    purpose : Purpose
+
+}
+
+
+@Entity()
+class Discrete_task {
+    @PrimaryGeneratedColumn()
+    id: number
+}
+
+@Entity()
+class Demand_task {
+    @PrimaryGeneratedColumn()
+    id: number
+}
 
 @Entity()
 class Goal {
     @PrimaryGeneratedColumn()
     id: number
 
-    project_name: string
-
-    project_description: string 
-
-    project_duration: string
-
-    project_type: string
-
-    user_provider: number
-
-    group_type: string
-
+    
 }
-
-
 
 
 // connection.dropDatabase()
@@ -116,9 +129,9 @@ createConnection({
     entities: [
         User,
         Auditory,
-        Goal,
-        Supervised,
-        Supervisor
+        Purpose,
+        Task
+
     ],
     synchronize: true,
     logging: false
@@ -133,9 +146,8 @@ createConnection({
         entities: [
             User,
             Auditory,
-            Goal,
-            Supervised,
-            Supervisor
+            Purpose,
+            Task
         ],
         synchronize: true,
         logging: false
@@ -155,41 +167,45 @@ createConnection({
         await connection.query('PRAGMA foreign_keys=ON');
     
         // Criar um usuário supervisor
+        const auditory = new Auditory()
+
+
+        const supervised = new User()
+        const supervisor = new User()
+
+        supervised.email = "dasd"
+        supervised.name = "Henrique"
+        supervised.password = "teste"
         
-        const user_supervisor = new User()
-        user_supervisor.email = "adsads"
-        user_supervisor.name = "Diogo"
-        user_supervisor.password = "dddd"
-    
-        await connection.manager.save(user_supervisor)
-        const supervisor = new Supervisor()
-        supervisor.user = user_supervisor
+        await connection.manager.save(supervised)
+        
+        supervisor.email = "anas"
+        supervisor.name = "OOkk"
+        supervisor.password = "123"
+
         await connection.manager.save(supervisor)
 
-        // Criar um usuário supervisionado
-        const user_supervised = new User()
-        user_supervised.email = "dadssd"
-        user_supervised.name = "Henrique"
-        user_supervised.password = "teste"
+        auditory.description = "Isto é uma tarefa entre supervisor e supervisionado"
+        auditory.supervised = supervised
+        auditory.supervisor = supervisor
 
-        await connection.manager.save(user_supervised)
-        const supervised = new Supervised()
-        supervised.user = user_supervised
-        await connection.manager.save(user_supervised)
-    
+        await connection.manager.save(auditory)
+
+
+
         app.get('/',(req,res) => res.send("Express with typescript working"))
         app.post('/api/insert_task',async function (req,res) {
     
-            let goal = new Goal()
+            let purpose = new Purpose()
             
-            goal.project_description = req.body.project_description
-            goal.project_duration = req.body.project_duration
-            goal.project_name = req.body.project_name
-            goal.project_type = req.body.project_type
+            purpose.project_description = req.body.project_description
+            purpose.project_duration = req.body.project_duration
+            purpose.project_name = req.body.project_name
+            purpose.project_type = req.body.project_type
     
     
-            let goal_serialized = await connection.manager.save(goal)
-            console.log(JSON.stringify(goal_serialized))
+            let purpose_serialized = await connection.manager.save(purpose)
+            console.log(JSON.stringify(purpose_serialized))
     
     
             res.json(req.body)

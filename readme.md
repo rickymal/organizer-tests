@@ -7,3 +7,4 @@
 - Uma lista de tarefas a serem executadas
 - Criar um sistema de tags baseados no que é escrito, observando o que tem de comum e deduzindo com um sistema LSTM inteligente as 
 
+- O passo seguinte é criar uma árvore com os dados baseado no que está na agenda
