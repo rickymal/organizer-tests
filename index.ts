@@ -47,7 +47,7 @@ class User {
 
 
 
-
+// Sistema da auditoria
 
 @Entity()
 class Auditory {
@@ -61,8 +61,30 @@ class Auditory {
     supervised: User
 
     @Column()
-    description : string
+    description : string //armazena as informações para anotação no markdown 2.0
+
+    @ManyToOne(() => AuditoryManager)
+    auditory_manager_supervisor : AuditoryManager
+
+    @ManyToOne(() => AuditoryManager)
+    auditory_manager_supervised : AuditoryManager
 }
+
+
+
+@Entity()
+class AuditoryManager {
+    @PrimaryGeneratedColumn()
+    id: number
+
+    @OneToMany(() => Auditory, aud => aud.auditory_manager_supervisor)
+    auditory_supervisor : Auditory
+
+
+    @OneToMany(() => Auditory, aud => aud.auditory_manager_supervised)
+    auditory_manager_supervised : Auditory
+}
+
 
 
 
