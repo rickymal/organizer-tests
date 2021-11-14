@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import express, { application } from 'express'
 import path from 'path'
-import { PrimaryGeneratedColumn, Column, createConnection, OneToMany, ManyToOne, OneToOne, JoinColumn, EntityColumnNotFound, Entity, TreeRepositoryNotSupportedError, Connection, getManager } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, createConnection, OneToMany, ManyToOne, OneToOne, JoinColumn, EntityColumnNotFound, Entity, TreeRepositoryNotSupportedError, Connection, getManager, getRepository, getConnection } from 'typeorm';
 import { createHmac } from "crypto";
 import { connection } from "mongoose";
 import { Response } from "express-serve-static-core";
@@ -19,84 +19,30 @@ app.set('views',view_path)
 app.set('view engine','jsx')
 app.engine('jsx',require('express-react-views').createEngine());
 
-@Entity()
-class User {
-    @PrimaryGeneratedColumn()
-    id: number
 
-    @Column()
-    name: string
-
-    @Column()
-    email : string
-
-    @Column()
-    password : string
-
-}
+/*
+SELECT p1.name as supervisor, p2.name as supervisionado FROM auditory_manager_rh 
+LEFT JOIN user p1 ON (auditory_manager_rh.supervisedId = p1.id)
+LEFT JOIN user p2 ON (auditory_manager_rh.supervisorId = p2.id)
 
 
-@Entity()
-class Notebook {
-    @PrimaryGeneratedColumn()
-    id: number
-
-    @ManyToOne(() => User)
-    owner : User 
-}
+SELECT p1.name as supervisor, p2.name as supervisionado, p3.name as Tarefa, p3.Author as "Autor da tarefa" FROM auditory_manager_rh 
+LEFT JOIN user p1 ON (auditory_manager_rh.supervisedId = p1.id)
+LEFT JOIN user p2 ON (auditory_manager_rh.supervisorId = p2.id)
+LEFT JOIN (SELECT purpose.*, user.name  as "Author"  FROM purpose CROSS JOIN user ON user.id = purpose.createdById) p3 ON (auditory_manager_rh.purposeId = p3.id
 
 
-@Entity()
-class Purpose {
+SELECT * from purpose where purpose.createdById = (SELECT d.id FROM user d where d.name = "Henrique")
 
-    @PrimaryGeneratedColumn()
-    id : number
-
-    @Column()
-    name : string
-
-    @Column()
-    description: string 
-
-    @Column({nullable : true})
-    duration : number
-
-    // @OneToMany(() => Relashionshiper_of_task, aud => aud.p1)
-    // purpose_p1 : Relashionshiper_of_task
-
-    // @OneToMany(() => Relashionshiper_of_task, aud => aud.p2)
-    // purpose_p2 : Relashionshiper_of_task
-
-}
-
-// Equelivante ao nó das conexões. Necessário para criação de chats privados entre 
-@Entity()
-class Relashionshiper_of_task {
-
-    @PrimaryGeneratedColumn()
-    id : number
-
-    @ManyToOne(() => Purpose, )
-    p1 : Purpose
-
-    @ManyToOne(() => Purpose, )
-    p2 : Purpose
-
-}
+Query para saber quem é o supervisor e quem é o supervisionado
+*/
 
 
-// a implementar
-@Entity()
-class Auditory_manager_RH {
-    @PrimaryGeneratedColumn()
-    id : number
+import {Auditory_manager_RH} from './entities/Auditory_manager_RG.entity'
+import {Relashionshiper_of_task} from './entities/Relashionshiper_of_task.entity'
+import {User} from './entities/User.entity'
+import {Purpose} from './entities/Purpose.entity'
 
-    @ManyToOne(() => User)
-    supervisor : User
-
-    @ManyToOne(() => User)
-    supervised : User
-}
 
 createConnection({
     type: "sqlite",
@@ -110,7 +56,8 @@ createConnection({
     synchronize : true,
     logging : false
 }).then(async (e) => {
-    await e.dropDatabase()
+    
+    // await e.dropDatabase()
     await e.close()
 }).then(() => {
     createConnection({
@@ -125,7 +72,94 @@ createConnection({
         synchronize: true,
         logging: false
     }).then(async connection => {
+
         console.log("Meu irmão.. estamos conectados")
+
+        app.delete('/api/delete_purpose', async function (request,response) {
+            let project_name = request.body["project-name"]
+
+            console.log("!!!!!!!!!!!!!!!!!!!!!")
+            console.log(project_name)
+            await getConnection()
+                .createQueryBuilder()
+                .delete()
+                .from(Purpose)
+                .where("name = :name", { name: project_name })
+                .execute();
+
+
+            response.send("OK")
+        })
+
+        app.put('/api/edit_purpose',async function(request,response) {
+            let project_name : string = request.body['project-name']
+            let project_description : string = request.body['project-description']
+
+            let response_from_sqlite = await getConnection().createQueryBuilder().update(Purpose)
+                .set(
+                    {
+                        description : project_description
+                    }
+                )
+                .where('name = :name', {name : project_name})
+                .execute()
+
+
+            response.send("OK")
+
+        })
+
+        app.get('/api/show_resume',async function (request, response) {
+            let user_name = request.body['user']
+
+            // // SELECT * from purpose where purpose.createdById = (SELECT d.id FROM user d where d.name = "Henrique")
+            // let internal_query  = getRepository(User).createQueryBuilder('user').where("user.name = :name",{name : user_name})
+
+            // let external_query = getRepository(Purpose).createQueryBuilder('purpose').where('purpose.createdById = ('+internal_query.getQuery() + ")")
+
+            let query_to_send = "SELECT * from purpose where purpose.createdById = (SELECT d.id FROM user d where d.name = \"" + user_name + "\")"
+            console.log(query_to_send)
+            let informativo_1 = await connection.query(query_to_send)
+
+            query_to_send = "SELECT p1.name as supervisor, p2.name as supervisionado, p3.name as Tarefa, p3.Author as \"Autor da tarefa\" FROM auditory_manager_rh LEFT JOIN user p1 ON (auditory_manager_rh.supervisedId = p1.id) LEFT JOIN user p2 ON (auditory_manager_rh.supervisorId = p2.id) LEFT JOIN (SELECT purpose.*, user.name  as \"Author\"  FROM purpose CROSS JOIN user ON user.id = purpose.createdById) p3 ON (auditory_manager_rh.purposeId = p3.id)"
+
+
+            let informativo_2 = await connection.query(query_to_send)
+
+            
+            let for_supervisor: { Tarefa: any; supervisionado: any; }[] = []
+            let for_supervised: { Tarefa: any; supervisor: any; }[] = []
+
+            informativo_2.forEach((e: any) => {
+                if (e['supervisor'] == user_name)
+                {
+                    for_supervisor.push({
+                        Tarefa: e['Tarefa'],
+                        supervisionado: e['supervisionado']
+                    })
+                }
+
+                if (e['supervisionado'] == user_name)
+                {
+                    for_supervised.push({
+                        Tarefa: e['Tarefa'],
+                        supervisor: e['supervisor']
+                    })
+                }
+            })
+
+  
+
+            response.send(JSON.stringify({
+                Tarefas: {
+                    supervisor : for_supervisor,
+                    supervisionado: for_supervised
+                }
+            }))
+
+            
+
+        })
 
         app.post('/api/insert_purpose', async function (request : any, response) {
             console.log("entoru eadasidbnhui")
@@ -133,6 +167,14 @@ createConnection({
             purpose.description = request.body['project-description']
             purpose.name = request.body['project-name']
             purpose.duration = request.body['duration']
+            let name_creator = request.body['created_by']
+            // Diogo
+            let user = await getRepository(User).createQueryBuilder("user").where("user.name = :name", {name : name_creator}).getOne()
+
+
+            purpose.created_by = user as User
+
+
             var emaned_from_purpose = request.body['emaneded-from-purpose']
 
             if (emaned_from_purpose.length != 0)
@@ -160,15 +202,28 @@ createConnection({
 
         app.post('/api/set_management',async function (request,response) {
             let project_name = request.body['project-name']
+            let date_of_beginning = request.body['date_of_beginning']
+            let date_of_ending = request.body['date_of_ending'] != null ? parseInt(request.body['date_of_ending']) : null
+
+
             let manager : Management_RH_content_view = new Object() as Management_RH_content_view
             manager.supervised = request.body['manager']['supervisor']
             manager.supervisor = request.body['manager']['supervised']
             console.log("supervisor: " + manager.supervised)
 
 
+
+
             let purpose = await connection.getRepository(Purpose).createQueryBuilder("purpose").where("purpose.name = :name", {
                 name : project_name
             }).getOne()
+
+            function addDays(date : Date, days : number) {
+                var result = new Date(date);
+                result.setDate(result.getDate() + days);
+                return result;
+              }
+
 
             try {
                 manager.supervised.forEach(async supervised => {
@@ -186,9 +241,13 @@ createConnection({
                         let amrh = new Auditory_manager_RH()
                         amrh.supervised = supervised_model as User
                         amrh.supervisor = supervisor_model as User
-    
-                        connection.manager.save(amrh)
-    
+                        amrh.purpose = purpose as Purpose
+
+                        console.log("Dat: " + date_of_beginning)
+                        console.log("Dat: " + date_of_ending)
+                        amrh.date_of_beginning = date_of_beginning == null ? null : new Date(date_of_beginning).toString()
+                        amrh.date_of_ending = date_of_ending == null ? null : new Date(date_of_beginning).toString()
+                        connection.manager.save(amrh)    
         
                     })
                 })
@@ -198,7 +257,7 @@ createConnection({
                 }))
             }
 
-         
+            response.send("OK")
 
         })
     })

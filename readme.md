@@ -1,7 +1,15 @@
 # Lista de recursos que o Software precisa ter agora em seguida
 
-- Parei no método create_connected_task
+- Criar o campo "created_by" no propósito para dizer quais foram os propósitos criados
+- Finalizar o CRUD no back-end utilizando insomnia
+- Montar front-end em Angular para mostrar as tarefas
+- Criar os cadernos de anotação
+- Criar outros bancos
+  - Métricas, etc...
 
+
+
+- Parei no método create_connected_task
 - Criar propósito mor (Gerar Leads B2B)
 - Criar propósito de vendas
 - Criar propósito do time DataOps
