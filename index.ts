@@ -1,10 +1,11 @@
 import "reflect-metadata"
 import express, { application } from 'express'
 import path from 'path'
-import { PrimaryGeneratedColumn, Column, createConnection, OneToMany, ManyToOne, OneToOne, JoinColumn, EntityColumnNotFound, Entity, TreeRepositoryNotSupportedError, Connection, getManager, getRepository, getConnection } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, createConnection, OneToMany, ManyToOne, OneToOne, JoinColumn, EntityColumnNotFound, Entity, TreeRepositoryNotSupportedError, Connection, getManager, getRepository, getConnection, CustomRepositoryCannotInheritRepositoryError } from 'typeorm';
 import { createHmac } from "crypto";
 import { connection } from "mongoose";
 import { Response } from "express-serve-static-core";
+import cors from 'cors';
 
 const app = express()
 const PORT = 8000
@@ -15,6 +16,7 @@ const view_path = path.join(__dirname,'views')
 app.use(express.json())
 app.use(express.urlencoded({extended : true}))
 app.use(express.static(pages_path))
+app.use(cors())
 app.set('views',view_path)
 app.set('view engine','jsx')
 app.engine('jsx',require('express-react-views').createEngine());
@@ -185,6 +187,8 @@ createConnection({
         })
 
         app.post('/api/create_user', async function(request,response) {
+
+            
             let email = request.body.email
             let password = request.body.password
             let name = request.body.name
@@ -195,7 +199,7 @@ createConnection({
             user.name = name
 
             connection.manager.save(user)
-
+            console.log("Usuário criado com sucesso")
             response.send(JSON.stringify(request.body))
         
         })
