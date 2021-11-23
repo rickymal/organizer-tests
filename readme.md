@@ -1,5 +1,9 @@
 # Lista de recursos que o Software precisa ter agora em seguida
 
+- [ ] Permitir com que as aplicações do front-end possam inserir tarefas emanadas de outras
+- [ ] Parei no set_managemente: definir quem é o supervisor(es) e quem são os supervisionados
+
+
 - Criar o campo "created_by" no propósito para dizer quais foram os propósitos criados
 - Finalizar o CRUD no back-end utilizando insomnia
 - Montar front-end em Angular para mostrar as tarefas

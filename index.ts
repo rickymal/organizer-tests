@@ -166,18 +166,20 @@ createConnection({
         app.post('/api/insert_purpose', async function (request : any, response) {
             console.log("entoru eadasidbnhui")
             let purpose = new Purpose()
-            purpose.description = request.body['project-description']
-            purpose.name = request.body['project-name']
+            purpose.description = request.body['description']
+            purpose.name = request.body['title']
             purpose.duration = request.body['duration']
-            let name_creator = request.body['created_by']
+            let name_creator = request.body['created_by'] || "Anônimo"
             // Diogo
             let user = await getRepository(User).createQueryBuilder("user").where("user.name = :name", {name : name_creator}).getOne()
 
+            console.log("Informação do propósito")
+            console.log(purpose)
 
             purpose.created_by = user as User
 
 
-            var emaned_from_purpose = request.body['emaneded-from-purpose']
+            var emaned_from_purpose = request.body['emaneded-from-purpose'] || new Array()
 
             if (emaned_from_purpose.length != 0)
             await create_connected_task(connection, purpose, response, request);
@@ -205,7 +207,7 @@ createConnection({
         })
 
         app.post('/api/set_management',async function (request,response) {
-            let project_name = request.body['project-name']
+            let project_name = request.body['project_name']
             let date_of_beginning = request.body['date_of_beginning']
             let date_of_ending = request.body['date_of_ending'] != null ? parseInt(request.body['date_of_ending']) : null
 
@@ -261,7 +263,9 @@ createConnection({
                 }))
             }
 
-            response.send("OK")
+            response.send(JSON.stringify({
+                status: "OK"
+            }))
 
         })
     })
